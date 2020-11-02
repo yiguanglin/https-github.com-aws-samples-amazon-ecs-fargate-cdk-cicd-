@@ -35,7 +35,7 @@ Then go to the file: amazon-ecs-fargate-cdk-cicd/cdk/lib/ecs_cdk-stack.ts
 
 Click the icon to “Edit this file” and search for the code creating gitHubSource as shown below:
 
-```
+```bash
     const gitHubSource = codebuild.Source.gitHub({
       owner: 'user-name',
       repo: 'amazon-ecs-fargate-cdk-cicd',
@@ -46,7 +46,7 @@ Click the icon to “Edit this file” and search for the code creating gitHubSo
     });
 ```
 
-```
+```bash
     const sourceAction = new codepipeline_actions.GitHubSourceAction({
       actionName: 'GitHub_Source',
       owner: 'user-name',
@@ -62,7 +62,7 @@ Replace the user-name with your GitHub userID in 2 places in the file and go to 
 
 Go to the Clone or download button and copy the https based clone URL. Access your Cloud9 environment and run the copied clone commands after replacing the user-name with your GitHub account username:
 
-```
+```bash
 Replace the user-name with your GitHub user-name and then run below commands in the ~/environment directory:
 git clone https://github.com/USER-NAME/amazon-ecs-fargate-cdk-cicd.git amazon-ecs-cdk-cicd
 ```
@@ -71,20 +71,20 @@ git clone https://github.com/USER-NAME/amazon-ecs-fargate-cdk-cicd.git amazon-ec
 
 As a security best practice, never hard-code your GitHub token in the code. Thus we will make use of AWS Secrets Manager service to store the GitHub Token and use it in our code.
 
-```
+```bash
 aws configure set region $AWS_REGION
 aws secretsmanager create-secret --name /my/github/token --secret-string <GITHUB-TOKEN> 
 ```
 Once the above command is run, check if the secret is stored as expected using below command:
 
-```
+```bash
 aws secretsmanager get-secret-value --secret-id /my/github/token --version-stage AWSCURRENT
 ```
 Notice that in the file amazon-ecs-fargate-cdk-cicd/cdk/lib/ecs_cdk-stack.ts, we are using the secret-name /my/github/token, which refers to the stored secret.
 
 Now, run the below command to authorize CodeBuild to access your GitHub account and replace the with your GitHub Token ID:
 
-```
+```bash
 Replace the <GITHUB-TOKEN> with your GitHub Token ID:
 
 aws codebuild import-source-credentials --server-type GITHUB --auth-type PERSONAL_ACCESS_TOKEN --token <GITHUB-TOKEN> 
@@ -93,7 +93,7 @@ aws codebuild list-source-credentials
 
 Now access the cloned directory:
 
-```
+```bash
 cd amazon-ecs-cdk-cicd/cdk
 ```
 
@@ -108,7 +108,7 @@ cdk ls
 ```
 Ensure that the CDK stack name is: EcsCdkStack
 
-``bash
+```bash
 cdk synth
 cdk bootstrap aws://$ACCOUNT_ID/$AWS_REGION
 cdk deploy
