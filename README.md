@@ -133,6 +133,11 @@ On accessing the application via ALB, the content will be updated to be below im
 
 <img src="images/ecs-deployed.png" alt="dashboard" style="border:1px solid black">
 
+Once code commited and CodePipeline is kicked off, it will deploy the application to the fargate. The successful run of the CI/CD pipeline would look like below:
+
+<img src="images/stage12-green.png" alt="dashboard" style="border:1px solid black">
+<img src="images/stage34-green.png" alt="dashboard" style="border:1px solid black">
+
 
 
 ## License
