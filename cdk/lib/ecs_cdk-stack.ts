@@ -34,7 +34,7 @@ export class EcsCdkStack extends cdk.Stack {
 
     const logging = new ecs.AwsLogDriver({
       streamPrefix: "ecs-logs"
-    })
+    });
 
     const taskRole = new iam.Role(this, `ecs-taskRole-${this.stackName}`, {
       roleName: `ecs-taskRole-${this.stackName}`,
@@ -98,9 +98,19 @@ export class EcsCdkStack extends cdk.Stack {
     // ECR - repo
     const ecrRepo = new ecr.Repository(this, 'EcrRepo');
 
+    const gitHubSource = codebuild.Source.gitHub({
+      owner: 'user-name',
+      repo: 'amazon-ecs-cdk-cicd',
+      webhook: true, // optional, default: true if `webhookFilteres` were provided, false otherwise
+      webhookFilters: [
+        codebuild.FilterGroup.inEventOf(codebuild.EventAction.PUSH).andBranchIs('master'),
+      ], // optional, by default all pushes and Pull Requests will trigger a build
+    });
+
     // CODEBUILD - project
     const project = new codebuild.Project(this, 'MyProject', {
       projectName: `${this.stackName}`,
+      source: gitHubSource,
       environment: {
         buildImage: codebuild.LinuxBuildImage.AMAZON_LINUX_2_2,
         privileged: true
@@ -145,7 +155,7 @@ export class EcsCdkStack extends cdk.Stack {
           ]
         }
       })
-    })
+    });
 
 
 
@@ -156,14 +166,13 @@ export class EcsCdkStack extends cdk.Stack {
 
     const sourceAction = new codepipeline_actions.GitHubSourceAction({
       actionName: 'GitHub_Source',
-      owner: 'nvaidya1',
+      owner: 'user-name',
       repo: 'amazon-ecs-cdk-cicd',
       branch: 'master',
-      oauthToken: cdk.SecretValue.secretsManager("/github/mfa/auth", {jsonField: "github_token"}),
-      output: sourceOutput,
-      trigger: codepipeline_actions.GitHubTrigger.POLL
+      oauthToken: cdk.SecretValue.secretsManager("/my/github/token"),
+      //oauthToken: cdk.SecretValue.plainText('<plain-text>'),
+      output: sourceOutput
     });
-
 
     const buildAction = new codepipeline_actions.CodeBuildAction({
       actionName: 'CodeBuild',
@@ -176,21 +185,17 @@ export class EcsCdkStack extends cdk.Stack {
       actionName: 'Approve',
     });
 
-
     const deployAction = new codepipeline_actions.EcsDeployAction({
       actionName: 'DeployAction',
       service: fargateService.service,
-      // if your file is called imagedefinitions.json,
-      // use the `input` property,
-      // and leave out the `imageFile` property
       imageFile: new codepipeline.ArtifactPath(buildOutput, `imagedefinitions.json`)
-    })
+    });
 
 
 
     // PIPELINE STAGES
 
-    new codepipeline.Pipeline(this, 'MyPipeline', {
+    new codepipeline.Pipeline(this, 'MyECSPipeline', {
       stages: [
         {
           stageName: 'Source',
@@ -207,8 +212,8 @@ export class EcsCdkStack extends cdk.Stack {
         {
           stageName: 'Deploy-to-ECS',
           actions: [deployAction],
-        },
-      ],
+        }
+      ]
     });
 
 
@@ -222,7 +227,7 @@ export class EcsCdkStack extends cdk.Stack {
         "ecr:GetDownloadUrlForLayer"
         ],
       resources: [`${cluster.clusterArn}`],
-    }))
+    }));
 
     //OUTPUT
 
@@ -230,3 +235,4 @@ export class EcsCdkStack extends cdk.Stack {
   }
 
 }
+
